@@ -1,0 +1,41 @@
+CREATE SCHEMA IF NOT EXISTS tvanalizer DEFAULT CHARACTER SET UTF8MB4;
+USE tvanalizer;
+CREATE TABLE IF NOT EXISTS tv_log
+(
+    log_id      bigint        NOT NULL,
+    cusref      VARCHAR(255)  NULL,
+    devref      VARCHAR(255)  NULL,
+    devmodel    VARCHAR(255)  NULL,
+    timezone    VARCHAR(255)  NULL,
+    ref         VARCHAR(255)  NULL,
+    type        VARCHAR(255)  NULL,
+    name        VARCHAR(255)  NULL,
+    end_time    bigint        NULL,
+    duration    bigint        NULL,
+    date_part   bigint        NULL,
+    extra       VARCHAR(1255) NULL,
+    channelref  VARCHAR(255)  NULL,
+    channelname VARCHAR(255)  NULL,
+    broadcastid VARCHAR(255)  NULL,
+    start_time  bigint        NULL,
+    devtype     VARCHAR(255)  NULL,
+    PRIMARY KEY (log_id)
+)
+
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/rawdata.txt' INTO TABLE tv_log COLUMNS TERMINATED BY ';';
+
+DELETE
+FROM tv_log
+WHERE log_id = ' s_logs_orc.id  ';
+
+SELECT name,
+       ref,
+       COUNT(ref) AS view_count,
+       cusref,
+       SEC_TO_TIME(SUM(duration)/1000) AS total_duration_per_day,
+       date_part
+FROM tv_log
+WHERE duration > 0
+GROUP BY ref, cusref, date_part
+ORDER BY cusref
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/sorteddata.xls' COLUMNS TERMINATED BY ';';
